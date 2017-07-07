@@ -6,27 +6,37 @@
 
 var path = require('path'),
     config;
-
-config = {
-    // ### Production
-    // When running Ghost in the wild, use the production environment.
-    // Configure your URL and mail settings here
-    production: {
-        url: process.env.OPENSHIFT_APP_DNS || process.env.OPENSIFT_APP_DNS || "localhost:2368",
-        mail: {},
-        database: {
-            client: 'sqlite3',
-            connection: {
-                filename: path.join(__dirname, '/content/data/ghost.db')
+var config;
+if (process.env.OPENSHIFT_MYSQL_DB_HOST != undefined) {
+    config = {
+        // ### Production
+        // When running Ghost in the wild, use the production environment
+        // Configure your URL and mail settings here
+        production: {
+            url: 'http://'+process.env.OPENSHIFT_APP_DNS,
+            mail: {},
+            database: {
+                client: 'mysql',
+                connection: {
+                    host     : process.env.OPENSHIFT_MYSQL_DB_HOST,
+                    port     : process.env.OPENSHIFT_MYSQL_DB_PORT,
+                    user     : process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+                    password : process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+                    database : process.env.OPENSHIFT_APP_NAME,
+                    charset  : 'utf8'
+                }
+                },
+            server: {
+                // Host to be passed to node's `net.Server#listen()`
+                host: process.env.OPENSHIFT_NODEJS_IP,
+                // Port to be passed to node's `net.Server#listen()`, for iisnode set this to `process.env.PORT`
+                port: process.env.OPENSHIFT_NODEJS_PORT
             },
-            debug: false
-        },
-
-		server: {
-		  host: process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1',
-		  port: process.env.OPENSHIFT_NODEJS_PORT || '2368'
-		}
-		    },
+            paths: {
+                contentPath: path.join(__dirname, '/content/')
+            }
+        }
+    },
 
     // ### Development **(default)**
     development: {
